@@ -12,7 +12,7 @@ public class CoreBot{
 
     public static final long messageDeleteTime = 20000; //milliseconds
     public static final int warnExpireDays = 20;
-
+    public static Prefs prefs2 = new Prefs(prefsFile);
     public static ContentHandler contentHandler = new ContentHandler();
     public static Messages messages = new Messages();
     public static Net net = new Net();

@@ -126,12 +126,20 @@ public class Messages extends ListenerAdapter{
     LongSeq schematicChannels = new LongSeq();
     Seq<CommandHandler> handlers = new Seq<>();
     Seq<String> handlerstrings = new Seq<>();
-
+    public Long mapsChannelIDLong,schematicsChannelIDLong,guildIDLong;
     public Messages(){
-        String token = "somestr";//System.getenv("CORE_BOT_TOKEN");
-
+        String token = prefs2.get("botToken","");
+        if (token.length()==0){
+            prefs2.put("botToken","input_bot_token");
+            prefs2.put("mapsChannelIDLong","input_mapsChannelIDLong");
+            prefs2.put("schematicsChannelIDLong","input_schematicsChannelIDLong");
+            prefs2.put("guildIDLong","input_guildIDLong");
+        } else{
+            mapsChannelIDLong = Long.parseLong(prefs2.get("mapsChannelIDLong",""));
+            schematicsChannelIDLong = Long.parseLong(prefs2.get("schematicsChannelIDLong",""));
+            guildIDLong = Long.parseLong(prefs2.get("guildIDLong",""));
+        }
         register();
-
         try{
             jda = JDABuilder.createDefault(token, GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_EMOJIS, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_PRESENCES)
                 .setMemberCachePolicy(MemberCachePolicy.ALL).disableCache(CacheFlag.VOICE_STATE).build();
@@ -153,22 +161,22 @@ public class Messages extends ListenerAdapter{
     void loadChannels(){
 
         //all guilds and channels are loaded here for faster lookup
-        guild = jda.getGuildById(785543836608364556L);
+        guild = jda.getGuildById(guildIDLong);
         //pluginChannel = channel(785543837488775218L);
         //crashReportChannel = channel(785543837488775218L);
         //announcementsChannel = channel(785543837488775218L);
         //artChannel = channel(785543837488775218L);
-        mapsChannel = channel(785836054070427659L);
+        mapsChannel = channel(mapsChannelIDLong);
         //moderationChannel = channel(785543837488775218L);
-        schematicsChannel = channel(785836216649383947L);
-        baseSchematicsChannel = channel(785836216649383947L);
+        schematicsChannel = channel(schematicsChannelIDLong);
+        baseSchematicsChannel = channel(schematicsChannelIDLong);
         //logChannel = channel(785543837488775218L);
         //joinChannel = channel(785543837488775218L);
         //streamsChannel = channel(785543837488775218L);
         //videosChannel = channel(785543837488775218L);
         //testingChannel = channel(785543837488775218L);
         //alertsChannel = channel(785543837488775218L);
-        curatedSchematicsChannel = channel(785836216649383947L);
+        curatedSchematicsChannel = channel(schematicsChannelIDLong);
         //Log.info(Objects.requireNonNull(guild.getTextChannelById(785543837488775218L)).getGuild().toString());
         schematicChannels.add(schematicsChannel.getIdLong(), baseSchematicsChannel.getIdLong(), curatedSchematicsChannel.getIdLong());
     }
