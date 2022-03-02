@@ -62,13 +62,17 @@ public class ContentHandler{
             }
         }
 
-        String assets = "../Mindustry/core/assets/";
+        //alex changed this String assets = "../Mindustry/core/assets/";
+        String assets = "assets/";
+        // copy files from:
+        //      ../Mindustry/core/assets/sprites/sprites.aatls >> botfolder/assets/sprites.aatls
+        //      ../Mindustry/core/assets/sprites/block_colors.png >> botfolder/assets/block_colors.png
         Vars.state = new GameState();
 
-        TextureAtlasData data = new TextureAtlasData(new Fi(assets + "sprites/sprites.aatls"), new Fi(assets + "sprites"), false);
+        TextureAtlasData data = new TextureAtlasData(new Fi(assets + "sprites.aatls"), new Fi(assets), false);
         Core.atlas = new TextureAtlas();
 
-        new Fi("../Mindustry/core/assets-raw/sprites_out").walk(f -> {
+        new Fi(assets+"sprites_out").walk(f -> {
             if(f.extEquals("png")){
                 imageFiles.put(f.nameWithoutExtension(), f);
             }
@@ -131,7 +135,7 @@ public class ContentHandler{
         }
 
         try{
-            BufferedImage image = ImageIO.read(new File("../Mindustry/core/assets/sprites/block_colors.png"));
+            BufferedImage image = ImageIO.read(new File(assets+"block_colors.png"));
 
             for(Block block : Vars.content.blocks()){
                 block.mapColor.argb8888(image.getRGB(block.id, 0));

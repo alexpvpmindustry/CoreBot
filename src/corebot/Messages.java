@@ -281,7 +281,7 @@ public class Messages extends ListenerAdapter{
                     builder.addField("Requirements", field.toString(), false);
 
                     schematicsChannel.sendFile(schemFile).addFile(previewFile).setEmbeds(builder.build()).queue();
-                    msg.delete().queue();
+                    text(msg, "*Scheme posted successfully.*");
                 }catch(Throwable e){
                     if(schematicChannels.contains(msg.getChannel().getIdLong())){
                         msg.delete().queue();
@@ -291,7 +291,9 @@ public class Messages extends ListenerAdapter{
                             e2.printStackTrace();
                         }
                     }
-                    //ignore errors
+                    text(msg,"ERROR: (PING ALEX)  "+e.toString());
+                    text(msg,e.getMessage()+"&&some error here&&"+e.getClass().getSimpleName());
+                    e.printStackTrace();
                 }
             }else{
                 errDelete(msg, "Error parsing schematic.");
