@@ -10,3 +10,4 @@
 /out/
 CoreBot.iml
 prefs.properties
+cache/*
