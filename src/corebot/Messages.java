@@ -70,7 +70,6 @@ public class Messages extends ListenerAdapter{
         "cs.?go.*skins",
         "skins.*cs.?go",
         "stea.*com.*partner",
-        "скин.*partner",
         "steamcommutiny",
         "di.*\\.gift.*nitro",
         "http.*disc.*gift.*\\.",
@@ -85,8 +84,6 @@ public class Messages extends ListenerAdapter{
         "http.*gift.*nitro",
         "http.*nitro.*gift",
         "http.*n.*gift",
-        "бесплат.*нитро.*http",
-        "нитро.*бесплат.*http",
         "nitro.*http.*disc.*nitro",
         "http.*click.*nitro",
         "http.*st.*nitro",
@@ -127,9 +124,11 @@ public class Messages extends ListenerAdapter{
     logChannel, joinChannel, videosChannel, streamsChannel, testingChannel,
     alertsChannel, curatedSchematicsChannel;
     LongSeq schematicChannels = new LongSeq();
+    Seq<CommandHandler> handlers = new Seq<>();
+    Seq<String> handlerstrings = new Seq<>();
 
     public Messages(){
-        String token = System.getenv("CORE_BOT_TOKEN");
+        String token = "somestr";//System.getenv("CORE_BOT_TOKEN");
 
         register();
 
@@ -154,53 +153,51 @@ public class Messages extends ListenerAdapter{
     void loadChannels(){
 
         //all guilds and channels are loaded here for faster lookup
-        guild = jda.getGuildById(391020510269669376L);
-        pluginChannel = channel(617833229973717032L);
-        crashReportChannel = channel(467033526018113546L);
-        announcementsChannel = channel(391020997098340352L);
-        artChannel = channel(754011833928515664L);
-        mapsChannel = channel(416719902641225732L);
-        moderationChannel = channel(488049830275579906L);
-        schematicsChannel = channel(640604827344306207L);
-        baseSchematicsChannel = channel(718536034127839252L);
-        logChannel = channel(568416809964011531L);
-        joinChannel = channel(832688792338038844L);
-        streamsChannel = channel(833420066238103604L);
-        videosChannel = channel(833826797048692747L);
-        testingChannel = channel(432984286099144706L);
-        alertsChannel = channel(864139464401223730L);
-        curatedSchematicsChannel = channel(878022862915653723L);
-
+        guild = jda.getGuildById(785543836608364556L);
+        //pluginChannel = channel(785543837488775218L);
+        //crashReportChannel = channel(785543837488775218L);
+        //announcementsChannel = channel(785543837488775218L);
+        //artChannel = channel(785543837488775218L);
+        mapsChannel = channel(785836054070427659L);
+        //moderationChannel = channel(785543837488775218L);
+        schematicsChannel = channel(785836216649383947L);
+        baseSchematicsChannel = channel(785836216649383947L);
+        //logChannel = channel(785543837488775218L);
+        //joinChannel = channel(785543837488775218L);
+        //streamsChannel = channel(785543837488775218L);
+        //videosChannel = channel(785543837488775218L);
+        //testingChannel = channel(785543837488775218L);
+        //alertsChannel = channel(785543837488775218L);
+        curatedSchematicsChannel = channel(785836216649383947L);
+        //Log.info(Objects.requireNonNull(guild.getTextChannelById(785543837488775218L)).getGuild().toString());
         schematicChannels.add(schematicsChannel.getIdLong(), baseSchematicsChannel.getIdLong(), curatedSchematicsChannel.getIdLong());
     }
 
     void register(){
         handler.<Message>register("help", "Displays all bot commands.", (args, msg) -> {
             StringBuilder builder = new StringBuilder();
-            for(Command command : handler.getCommandList()){
-                builder.append(prefix);
-                builder.append("**");
-                builder.append(command.text);
-                builder.append("**");
-                if(command.params.length > 0){
-                    builder.append(" *");
-                    builder.append(command.paramText);
-                    builder.append("*");
+            for (int i = 0; i < handlers.size; i++) {
+                CommandHandler hand = handlers.get(i);
+                builder.append( handlerstrings.get(i) ).append("\n");
+                for (Command command : hand.getCommandList()) {
+                    builder.append(prefix);
+                    builder.append("**");
+                    builder.append(command.text);
+                    builder.append("**");
+                    if (command.params.length > 0) {
+                        builder.append(" *");
+                        builder.append(command.paramText);
+                        builder.append("*");
+                    }
+                    builder.append(" - ");
+                    builder.append(command.description);
+                    builder.append("\n");
                 }
-                builder.append(" - ");
-                builder.append(command.description);
-                builder.append("\n");
             }
-
             info(msg.getChannel(), "Commands", builder.toString());
         });
 
         handler.<Message>register("ping", "<ip>", "Pings a server.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
             net.pingServer(args[0], result -> {
                 if(result.name != null){
                     info(msg.getChannel(), "Server Online", "Host: @\nPlayers: @\nMap: @\nWave: @\nVersion: @\nPing: @ms",
@@ -211,47 +208,7 @@ public class Messages extends ListenerAdapter{
             });
         });
 
-        handler.<Message>register("info", "<topic>", "Displays information about a topic.", (args, msg) -> {
-            try{
-                Info info = Info.valueOf(args[0]);
-                infoDesc(msg.getChannel(), info.title, info.text);
-            }catch(IllegalArgumentException e){
-                errDelete(msg, "Error", "Invalid topic '@'.\nValid topics: *@*", args[0], Arrays.toString(Info.values()));
-            }
-        });
-
-
-        handler.<Message>register("postplugin", "<github-url>", "Post a plugin via Github repository URL.", (args, msg) -> {
-            if(!args[0].startsWith("https") || !args[0].contains("github")){
-                errDelete(msg, "That's not a valid Github URL.");
-            }else{
-                try{
-                    Document doc = Jsoup.connect(args[0]).get();
-
-                    EmbedBuilder builder = new EmbedBuilder().setColor(normalColor).
-                    setColor(normalColor)
-                    .setAuthor(msg.getAuthor().getName(), msg.getAuthor().getEffectiveAvatarUrl(), msg.getAuthor().getEffectiveAvatarUrl())
-                    .setTitle(doc.select("strong[itemprop=name]").text());
-
-                    Elements elem = doc.select("span[itemprop=about]");
-                    if(!elem.isEmpty()){
-                        builder.addField("About", elem.text(), false);
-                    }
-
-                    builder
-                    .addField("Link", args[0], false)
-                    .addField("Downloads", args[0] + (args[0].endsWith("/") ? "" : "/") + "releases", false);
-
-                    pluginChannel.sendMessageEmbeds(builder.build()).queue();
-
-                    text(msg, "*Plugin posted.*");
-                }catch(IOException e){
-                    errDelete(msg, "Failed to fetch plugin info from URL.");
-                }
-            }
-        });
-
-        handler.<Message>register("postmap", "Post a .msav file to the #maps channel.", (args, msg) -> {
+        handler.<Message>register("postmap", "Post a .msav file to the #map-submissions channel.", (args, msg) -> {
 
             if(msg.getAttachments().size() != 1 || !msg.getAttachments().get(0).getFileName().endsWith(".msav")){
                 errDelete(msg, "You must have one .msav file in the same message as the command!");
@@ -284,171 +241,52 @@ public class Messages extends ListenerAdapter{
                 errDelete(msg, "Error parsing map.", err.length() < max ? err : err.substring(0, max));
             }
         });
+        handler.<Message>register("postscheme","Post a scheme file to the schematics channel",(args,msg)->{
+            //schematic preview
+            if(msg.getAttachments().size() == 1 && msg.getAttachments().get(0).getFileExtension() != null && msg.getAttachments().get(0).getFileExtension().equals(Vars.schematicExtension)){
+                try{
+                    Schematic schem = msg.getAttachments().size() == 1 ? contentHandler.parseSchematicURL(msg.getAttachments().get(0).getUrl()) : contentHandler.parseSchematic(msg.getContentRaw());
+                    BufferedImage preview = contentHandler.previewSchematic(schem);
+                    String sname = schem.name().replace("/", "_").replace(" ", "_");
+                    if(sname.isEmpty()) sname = "empty";
 
-        handler.<Message>register("google", "<phrase...>", "Let me google that for you.", (args, msg) -> {
-            text(msg, "http://lmgtfy.com/?q=@", Strings.encode(args[0]));
-        });
+                    new File("cache").mkdir();
+                    File previewFile = new File("cache/img_" + UUID.randomUUID() + ".png");
+                    File schemFile = new File("cache/" + sname + "." + Vars.schematicExtension);
+                    Schematics.write(schem, new Fi(schemFile));
+                    ImageIO.write(preview, "png", previewFile);
 
-        handler.<Message>register("cleanmod", "Clean up a modded zip archive. Changes json into hjson and formats code.", (args, msg) -> {
+                    EmbedBuilder builder = new EmbedBuilder().setColor(normalColor).setColor(normalColor)
+                            .setImage("attachment://" + previewFile.getName())
+                            .setAuthor(msg.getAuthor().getName(), msg.getAuthor().getEffectiveAvatarUrl(), msg.getAuthor().getEffectiveAvatarUrl()).setTitle(schem.name());
 
-            if(msg.getAttachments().size() != 1 || !msg.getAttachments().get(0).getFileName().endsWith(".zip")){
-                errDelete(msg, "You must have one .zip file in the same message as the command!");
-                return;
-            }
+                    if(!schem.description().isEmpty()) builder.setFooter(schem.description());
 
-            Attachment a = msg.getAttachments().get(0);
+                    StringBuilder field = new StringBuilder();
 
-            if(a.getSize() > 1024 * 1024 * 6){
-                errDelete(msg, "Zip files may be no more than 6 MB.");
-            }
+                    for(ItemStack stack : schem.requirements()){
+                        List<Emote> emotes = guild.getEmotesByName(stack.item.name.replace("-", ""), true);
+                        Emote result = emotes.isEmpty() ? guild.getEmotesByName("ohno", true).get(0) : emotes.get(0);
 
-            try{
-                new File("cache/").mkdir();
-                File baseFile = new File("cache/" + a.getFileName());
-                Fi destFolder = new Fi("cache/dest_mod" + a.getFileName());
-                Fi destFile = new Fi("cache/" + new Fi(baseFile).nameWithoutExtension() + "-cleaned.zip");
-
-                if(destFolder.exists()) destFolder.deleteDirectory();
-                if(destFile.exists()) destFile.delete();
-
-                Streams.copy(net.download(a.getUrl()), new FileOutputStream(baseFile));
-                ZipFi zip = new ZipFi(new Fi(baseFile.getPath()));
-                zip.walk(file -> {
-                    Fi output = destFolder.child(file.extension().equals("json") ? file.pathWithoutExtension() + ".hjson" : file.path());
-                    output.parent().mkdirs();
-
-                    if(file.extension().equals("json") || file.extension().equals("hjson")){
-                        output.writeString(fixJval(Jval.read(file.readString())).toString(Jformat.hjson));
-                    }else{
-                        file.copyTo(output);
+                        field.append(result.getAsMention()).append(stack.amount).append("  ");
                     }
-                });
+                    builder.addField("Requirements", field.toString(), false);
 
-                try(OutputStream fos = destFile.write(false, 2048); ZipOutputStream zos = new ZipOutputStream(fos)){
-                    for(Fi add : destFolder.findAll(f -> true)){
-                        if(add.isDirectory()) continue;
-                        zos.putNextEntry(new ZipEntry(add.path().substring(destFolder.path().length())));
-                        Streams.copy(add.read(), zos);
-                        zos.closeEntry();
-                    }
-
-                }
-
-                msg.getChannel().sendFile(destFile.file()).queue();
-
-                text(msg, "*Mod converted successfully.*");
-            }catch(Throwable e){
-                errDelete(msg, "Error parsing mod.", Strings.neatError(e, false));
-            }
-        });
-
-        handler.<Message>register("file", "<filename...>", "Find a Mindustry source file by name", (args, msg) -> {
-            //epic asynchronous code, I know
-            Http.get("https://api.github.com/search/code?q=" +
-            "filename:" + Strings.encode(args[0]) + "%20" +
-            "repo:Anuken/Mindustry")
-            .header("Accept", "application/vnd.github.v3+json")
-            .error(err -> errDelete(msg, "Error querying Github", Strings.getSimpleMessage(err)))
-            .block(result -> {
-                msg.delete().queue();
-                Jval val = Jval.read(result.getResultAsString());
-
-                //merge with arc results
-                Http.get("https://api.github.com/search/code?q=" +
-                "filename:" + Strings.encode(args[0]) + "%20" +
-                "repo:Anuken/Arc")
-                .header("Accept", "application/vnd.github.v3+json")
-                .block(arcResult -> {
-                    Jval arcVal = Jval.read(arcResult.getResultAsString());
-
-                    val.get("items").asArray().addAll(arcVal.get("items").asArray());
-                    val.put("total_count", val.getInt("total_count", 0) + arcVal.getInt("total_count", 0));
-                });
-
-                int count = val.getInt("total_count", 0);
-
-                if(count > 0){
-                    val.get("items").asArray().removeAll(j -> !j.getString("name").contains(args[0]));
-                    count = val.get("items").asArray().size;
-                }
-
-                if(count == 0){
-                    errDelete(msg, "No results found.");
-                    return;
-                }
-
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.setColor(normalColor);
-                embed.setAuthor(msg.getAuthor().getName() + ": Github Search Results", val.get("items").asArray().first().getString("html_url"), "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png");
-                embed.setTitle("Github Search Results");
-
-                if(count == 1){
-                    Jval item = val.get("items").asArray().first();
-                    embed.setTitle(item.getString("name"));
-                    embed.setDescription("[View on Github](" + item.getString("html_url") + ")");
-                }else{
-                    int maxResult = 5, i = 0;
-                    StringBuilder results = new StringBuilder();
-                    for(Jval item : val.get("items").asArray()){
-                        if(i++ > maxResult){
-                            break;
+                    schematicsChannel.sendFile(schemFile).addFile(previewFile).setEmbeds(builder.build()).queue();
+                    msg.delete().queue();
+                }catch(Throwable e){
+                    if(schematicChannels.contains(msg.getChannel().getIdLong())){
+                        msg.delete().queue();
+                        try{
+                            msg.getAuthor().openPrivateChannel().complete().sendMessage("Invalid schematic: " + e.getClass().getSimpleName() + (e.getMessage() == null ? "" : " (" + e.getMessage() + ")")).queue();
+                        }catch(Exception e2){
+                            e2.printStackTrace();
                         }
-                        results.append("[").append(item.getString("name")).append("]").append("(").append(item.getString("html_url")).append(")\n");
                     }
-
-                    embed.setTitle((count > maxResult ? maxResult + "+" : count) + " Source Results");
-                    embed.setDescription(results.toString());
+                    //ignore errors
                 }
-
-                msg.getChannel().sendMessageEmbeds(embed.build()).queue();
-            });
-        });
-
-
-        handler.<Message>register("mywarnings", "Get information about your own warnings. Only usable in #bots.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
-            sendWarnings(msg, msg.getAuthor());
-        });
-
-        handler.<Message>register("avatar", "[@user]", "Get a user's full avatar.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
-            try{
-                User user;
-                if(args.length > 0){
-                    long id;
-                    try{
-                        id = Long.parseLong(args[0]);
-                    }catch(NumberFormatException e){
-                        String author = args[0].substring(2, args[0].length() - 1);
-                        if(author.startsWith("!")) author = author.substring(1);
-                        id = Long.parseLong(author);
-                    }
-
-                    user = jda.retrieveUserById(id).complete();
-                }else{
-                    user = msg.getAuthor();
-                }
-
-                String link = user.getEffectiveAvatarUrl() + "?size=1024";
-
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.setColor(normalColor);
-                embed.setTitle("Avatar: " + user.getName() + "#" + user.getDiscriminator());
-                embed.setImage(link);
-                embed.setDescription("[Link](" + link + ")");
-                embed.setFooter("Requested by " + msg.getAuthor().getName() + "#" + msg.getAuthor().getDiscriminator());
-                msg.getChannel().sendMessageEmbeds(embed.build()).queue();
-
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format or ID.");
+            }else{
+                errDelete(msg, "Error parsing schematic.");
             }
         });
 
@@ -480,18 +318,6 @@ public class Messages extends ListenerAdapter{
             }
         });
 
-        adminHandler.<Message>register("warnings", "<@user>", "Get number of warnings a user has.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                sendWarnings(msg, user);
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
         adminHandler.<Message>register("delete", "<amount>", "Delete some ", (args, msg) -> {
             try{
                 int number = Integer.parseInt(args[0]);
@@ -502,56 +328,8 @@ public class Messages extends ListenerAdapter{
                 errDelete(msg, "Invalid number.");
             }
         });
-
-        adminHandler.<Message>register("warn", "<@user> [reason...]", "Warn a user.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                var list = getWarnings(user);
-                list.add(System.currentTimeMillis() + ":::" + msg.getAuthor().getName() + (args.length > 1 ? ":::" + args[1] : ""));
-                text(msg, "**@**, you've been warned *@*.", user.getAsMention(), warningStrings[Mathf.clamp(list.size - 1, 0, warningStrings.length - 1)]);
-                prefs.putArray("warning-list-" + user.getIdLong(), list);
-                if(list.size >= 3){
-                    moderationChannel.sendMessage("User " + user.getAsMention() + " has been warned 3 or more times!").queue();
-                }
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
-        adminHandler.<Message>register("clearwarnings", "<@user>", "Clear number of warnings for a person.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                prefs.putArray("warning-list-" + user.getIdLong(), new Seq<>());
-                text(msg, "Cleared warnings for user '@'.", user.getName());
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
-        adminHandler.<Message>register("schemdesigner", "<add/remove> <@user>", "Make a user a verified schematic designer.", (args, msg) -> {
-            String author = args[1].substring(2, args[1].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                boolean add = args[0].equals("add");
-                if(add){
-                    guild.addRoleToMember(l, guild.getRoleById(877171645427621889L)).queue();
-                }else{
-                    guild.removeRoleFromMember(l, guild.getRoleById(877171645427621889L)).queue();
-                }
-
-                text(msg, "**@** is @ a verified schematic designer.", user.getName(), add ? "now" : "no longer");
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
+        handlerstrings.add("**[**Public Commands**]**","**[**Admin Commands**]**");
+        handlers.add(handler,adminHandler);
     }
 
     @Override
@@ -567,83 +345,8 @@ public class Messages extends ListenerAdapter{
         .addField("Channel", msg.getTextChannel().getAsMention(), false)
         .setColor(normalColor);
 
-        if(msg.getReferencedMessage() != null){
-            log.addField("Replying to", msg.getReferencedMessage().getAuthor().getAsMention() + " [Jump](" + msg.getReferencedMessage().getJumpUrl() + ")", false);
-        }
-
-        if(msg.getMentionedUsers().stream().anyMatch(u -> u.getIdLong() == 123539225919488000L)){
-            log.addField("Note", "thisisamention", false);
-        }
-
-        if(msg.getChannel().getIdLong() != testingChannel.getIdLong()){
-            logChannel.sendMessageEmbeds(log.build()).queue();
-        }
-
-        //delete stray invites
-        if(!isAdmin(msg.getAuthor()) && checkSpam(msg, false)){
-            return;
-        }
-
-        //delete non-art
-        if(!isAdmin(msg.getAuthor()) && msg.getChannel().getIdLong() == artChannel.getIdLong() && msg.getAttachments().isEmpty()){
-            msg.delete().queue();
-
-            if(msg.getType() != MessageType.CHANNEL_PINNED_ADD){
-                try{
-                    msg.getAuthor().openPrivateChannel().complete().sendMessage("Don't send messages without images in that channel.").queue();
-                }catch(Exception e1){
-                    e1.printStackTrace();
-                }
-            }
-        }
-
         String text = msg.getContentRaw();
-
-        //schematic preview
-        if((msg.getContentRaw().startsWith(ContentHandler.schemHeader) && msg.getAttachments().isEmpty()) ||
-        (msg.getAttachments().size() == 1 && msg.getAttachments().get(0).getFileExtension() != null && msg.getAttachments().get(0).getFileExtension().equals(Vars.schematicExtension))){
-            try{
-                Schematic schem = msg.getAttachments().size() == 1 ? contentHandler.parseSchematicURL(msg.getAttachments().get(0).getUrl()) : contentHandler.parseSchematic(msg.getContentRaw());
-                BufferedImage preview = contentHandler.previewSchematic(schem);
-                String sname = schem.name().replace("/", "_").replace(" ", "_");
-                if(sname.isEmpty()) sname = "empty";
-
-                new File("cache").mkdir();
-                File previewFile = new File("cache/img_" + UUID.randomUUID() + ".png");
-                File schemFile = new File("cache/" + sname + "." + Vars.schematicExtension);
-                Schematics.write(schem, new Fi(schemFile));
-                ImageIO.write(preview, "png", previewFile);
-
-                EmbedBuilder builder = new EmbedBuilder().setColor(normalColor).setColor(normalColor)
-                .setImage("attachment://" + previewFile.getName())
-                .setAuthor(msg.getAuthor().getName(), msg.getAuthor().getEffectiveAvatarUrl(), msg.getAuthor().getEffectiveAvatarUrl()).setTitle(schem.name());
-
-                if(!schem.description().isEmpty()) builder.setFooter(schem.description());
-
-                StringBuilder field = new StringBuilder();
-
-                for(ItemStack stack : schem.requirements()){
-                    List<Emote> emotes = guild.getEmotesByName(stack.item.name.replace("-", ""), true);
-                    Emote result = emotes.isEmpty() ? guild.getEmotesByName("ohno", true).get(0) : emotes.get(0);
-
-                    field.append(result.getAsMention()).append(stack.amount).append("  ");
-                }
-                builder.addField("Requirements", field.toString(), false);
-
-                msg.getChannel().sendFile(schemFile).addFile(previewFile).setEmbeds(builder.build()).queue();
-                msg.delete().queue();
-            }catch(Throwable e){
-                if(schematicChannels.contains(msg.getChannel().getIdLong())){
-                    msg.delete().queue();
-                    try{
-                        msg.getAuthor().openPrivateChannel().complete().sendMessage("Invalid schematic: " + e.getClass().getSimpleName() + (e.getMessage() == null ? "" : " (" + e.getMessage() + ")")).queue();
-                    }catch(Exception e2){
-                        e2.printStackTrace();
-                    }
-                }
-                //ignore errors
-            }
-        }else if(schematicChannels.contains(msg.getChannel().getIdLong()) && !isAdmin(msg.getAuthor())){
+        if(schematicChannels.contains(msg.getChannel().getIdLong()) && !isAdmin(msg.getAuthor())){
             //delete non-schematics
             msg.delete().queue();
             try{
@@ -680,41 +383,6 @@ public class Messages extends ListenerAdapter{
                 e.printStackTrace();
             }
         }
-    }
-
-    @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event){
-        event.getUser().openPrivateChannel().complete().sendMessage(
-        """
-        **Welcome to the Mindustry Discord.**
-                
-        *Make sure you read #rules and the channel topics before posting.*
-                
-        **View a list of all frequently answered questions here:**
-        <https://discordapp.com/channels/391020510269669376/611204372592066570/611586644402765828>
-        """
-        ).queue();
-
-        joinChannel
-        .sendMessageEmbeds(new EmbedBuilder()
-            .setAuthor(event.getUser().getName(), event.getUser().getAvatarUrl(), event.getUser().getAvatarUrl())
-            .addField("User", event.getUser().getAsMention(), false)
-            .addField("ID", "`" + event.getUser().getId() + "`", false)
-            .setColor(normalColor).build())
-        .queue();
-    }
-
-    void sendWarnings(Message msg, User user){
-        var list = getWarnings(user);
-        text(msg, "User '@' has **@** @.\n@", user.getName(), list.size, list.size == 1 ? "warning" : "warnings",
-        list.map(s -> {
-            String[] split = s.split(":::");
-            long time = Long.parseLong(split[0]);
-            String warner = split.length > 1 ? split[1] : null, reason = split.length > 2 ? split[2] : null;
-            return "- `" + fmt.format(new Date(time)) + "`: Expires in " + (warnExpireDays - Duration.ofMillis((System.currentTimeMillis() - time)).toDays()) + " days" +
-            (warner == null ? "" : "\n  ↳ *From:* " + warner) +
-            (reason == null ? "" : "\n  ↳ *Reason:* " + reason);
-        }).toString("\n"));
     }
 
     public void text(MessageChannel channel, String text, Object... args){
@@ -789,7 +457,7 @@ public class Messages extends ListenerAdapter{
 
     boolean isAdmin(User user){
         var member = guild.retrieveMember(user).complete();
-        return member != null && member.getRoles().stream().anyMatch(role -> role.getName().equals("Developer") || role.getName().equals("Moderator") || role.getName().equals("\uD83D\uDD28 \uD83D\uDD75️\u200D♂️"));
+        return member != null && member.getRoles().stream().anyMatch(role -> role.getName().equals("Admin (Discord)") || role.getName().equals("Admin (Mindustry)") );
     }
 
     boolean checkSpam(Message message, boolean edit){
