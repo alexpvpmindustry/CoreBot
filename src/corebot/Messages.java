@@ -241,10 +241,6 @@ public class Messages extends ListenerAdapter{
 
             if(msg.getAuthor().isBot() || msg.getChannel().getType() != ChannelType.TEXT) return;
 
-            if(msg.getMentionedUsers().contains(jda.getSelfUser())){
-                msg.addReaction(aaaaa).queue();
-            }
-
             EmbedBuilder log = new EmbedBuilder()
             .setAuthor(msg.getAuthor().getName(), msg.getAuthor().getEffectiveAvatarUrl(), msg.getAuthor().getEffectiveAvatarUrl())
             .setDescription(msg.getContentRaw().length() >= 2040 ? msg.getContentRaw().substring(0, 2040) + "..." : msg.getContentRaw())
