@@ -11,6 +11,7 @@ allprojects{
         mavenCentral()
         maven{ url "https://oss.sonatype.org/content/repositories/snapshots/" }
         maven{ url "https://oss.sonatype.org/content/repositories/releases/" }
+        maven{ url "https://raw.githubusercontent.com/Zelaux/MindustryRepo/master/repository" }
         maven{ url 'https://jitpack.io' }
         maven{
             name 'm2-dv8tion'
@@ -20,7 +21,7 @@ allprojects{
 }
 
 ext{
-    mindustryVersion = 'v135'
+    mindustryVersion = 'v146'
 }
 
 task dist(type: Jar){
@@ -38,6 +39,9 @@ task dist(type: Jar){
 }
 
 dependencies{
+    compileOnly "com.github.Anuken.Mindustry:core:$mindustryVersion"
+    compileOnly "com.github.Anuken.Arc:arc-core:$mindustryVersion"
+
     implementation("net.dv8tion:JDA:5.0.0-alpha.10")
     implementation "org.jsoup:jsoup:1.7.2"
     implementation "com.github.Anuken.MindustryJitpack:core:5b7f751073"
