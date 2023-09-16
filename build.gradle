@@ -24,14 +24,14 @@ ext{
     mindustryVersion = 'v146'
 }
 
-task dist(type: Jar){
+tasks.register('dist', Jar) {
     from files(sourceSets.main.output.classesDirs)
     from files(sourceSets.main.output.resourcesDir)
-    from {configurations.runtimeClasspath.collect{ it.isDirectory() || !it.name.endsWithAny(".zip", ".jar") ? it : zipTree(it) }}
+    from { configurations.runtimeClasspath.collect { it.isDirectory() || !it.name.endsWithAny(".zip", ".jar") ? it : zipTree(it) } }
 
     archiveFileName = "CoreBot.jar"
 
-    manifest{
+    manifest {
         attributes 'Main-Class': "corebot.CoreBot"
     }
 
