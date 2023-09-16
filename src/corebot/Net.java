@@ -32,19 +32,6 @@ public class Net{
                     //don't post revisions
                     String text = latest.description;
                     int maxLength = 2000;
-                    while(true){
-                        String current = text.substring(0, Math.min(maxLength, text.length()));
-                        CoreBot.messages.announcementsChannel
-                        .sendMessageEmbeds(new EmbedBuilder()
-                        .setColor(normalColor).setTitle(latest.name)
-                        .setDescription(current).build()).queue();
-
-                        if(text.length() < maxLength){
-                            break;
-                        }
-
-                        text = text.substring(maxLength);
-                    }
                     CoreBot.prefs.put("lastBuild", latest.build);
                 }
             }catch(Throwable e){

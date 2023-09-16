@@ -78,16 +78,16 @@ public class VideoScanner{
 
             if(desc.length() > 200) desc = desc.substring(0, 200) + "...";
 
-            CoreBot.messages.videosChannel
-            .sendMessageEmbeds(
-            new EmbedBuilder()
-            .setTitle(video.getString("title"), videoUrl)
-            .setColor(CoreBot.normalColor)
-            .setAuthor(video.getString("videoOwnerChannelTitle"), videoUrl, avatar)
-            .setImage(video.get("thumbnails").get("high").getString("url"))
-            .setTimestamp(DateTimeFormatter.ISO_INSTANT.parse(video.getString("publishedAt")))
-            .setFooter(desc)
-            .build()).queue();
+//            CoreBot.messages.videosChannel
+//            .sendMessageEmbeds(
+//            new EmbedBuilder()
+//            .setTitle(video.getString("title"), videoUrl)
+//            .setColor(CoreBot.normalColor)
+//            .setAuthor(video.getString("videoOwnerChannelTitle"), videoUrl, avatar)
+//            .setImage(video.get("thumbnails").get("high").getString("url"))
+//            .setTimestamp(DateTimeFormatter.ISO_INSTANT.parse(video.getString("publishedAt")))
+//            .setFooter(desc)
+//            .build()).queue();
         }else{
             Log.warn("unable to get user with ID @", id);
         }

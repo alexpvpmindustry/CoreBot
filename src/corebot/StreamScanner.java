@@ -69,15 +69,15 @@ public class StreamScanner{
             //comedy
             if(stream.getString("title").contains("18")) return;
 
-            CoreBot.messages.streamsChannel
-            .sendMessageEmbeds(
-            new EmbedBuilder()
-            .setTitle(stream.getString("title"), "https://twitch.tv/" + stream.getString("user_login"))
-            .setColor(CoreBot.normalColor)
-            .setAuthor(stream.getString("user_name"), "https://twitch.tv/" + stream.getString("user_login"), avatar)
-            .setImage(stream.getString("thumbnail_url").replace("{width}", "390").replace("{height}", "220"))
-            .setTimestamp(DateTimeFormatter.ISO_INSTANT.parse(stream.getString("started_at")))
-            .build()).queue();
+//            CoreBot.messages.streamsChannel
+//            .sendMessageEmbeds(
+//            new EmbedBuilder()
+//            .setTitle(stream.getString("title"), "https://twitch.tv/" + stream.getString("user_login"))
+//            .setColor(CoreBot.normalColor)
+//            .setAuthor(stream.getString("user_name"), "https://twitch.tv/" + stream.getString("user_login"), avatar)
+//            .setImage(stream.getString("thumbnail_url").replace("{width}", "390").replace("{height}", "220"))
+//            .setTimestamp(DateTimeFormatter.ISO_INSTANT.parse(stream.getString("started_at")))
+//            .build()).queue();
         }
     }
 

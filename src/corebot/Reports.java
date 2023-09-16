@@ -45,7 +45,7 @@ public class Reports{
                         builder.append("\n");
                         value1 = value1.next;
                     }
-                    CoreBot.messages.crashReportChannel.sendMessage(builder.toString()).queue();
+                    // alex removed CoreBot.messages.crashReportChannel.sendMessage(builder.toString()).queue();
                 }else{
                     Log.info("Rejecting report with invalid build: @. Current latest build is @.", build, CoreBot.net.getLastBuild());
                 }

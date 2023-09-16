@@ -155,20 +155,20 @@ public class Messages extends ListenerAdapter{
 
         //all guilds and channels are loaded here for faster lookup
         guild = jda.getGuildById(391020510269669376L);
-        pluginChannel = channel(617833229973717032L);
-        crashReportChannel = channel(467033526018113546L);
-        announcementsChannel = channel(391020997098340352L);
-        artChannel = channel(754011833928515664L);
+        // alex removed pluginChannel = channel(617833229973717032L);
+        // alex removed crashReportChannel = channel(467033526018113546L);
+        // alex removed announcementsChannel = channel(391020997098340352L);
+        // alex removed artChannel = channel(754011833928515664L);
         mapsChannel = channel(416719902641225732L);
-        moderationChannel = channel(488049830275579906L);
+        // alex removed moderationChannel = channel(488049830275579906L);
         schematicsChannel = channel(640604827344306207L);
         baseSchematicsChannel = channel(718536034127839252L);
-        logChannel = channel(568416809964011531L);
-        joinChannel = channel(832688792338038844L);
-        streamsChannel = channel(833420066238103604L);
-        videosChannel = channel(833826797048692747L);
-        testingChannel = channel(432984286099144706L);
-        alertsChannel = channel(864139464401223730L);
+        // alex removed logChannel = channel(568416809964011531L);
+        // alex removed joinChannel = channel(832688792338038844L);
+        // alex removed streamsChannel = channel(833420066238103604L);
+        // alex removed videosChannel = channel(833826797048692747L);
+        // alex removed testingChannel = channel(432984286099144706L);
+        // alex removed alertsChannel = channel(864139464401223730L);
         curatedSchematicsChannel = channel(878022862915653723L);
 
         schematicChannels.add(schematicsChannel.getIdLong(), baseSchematicsChannel.getIdLong(), curatedSchematicsChannel.getIdLong());
@@ -193,62 +193,6 @@ public class Messages extends ListenerAdapter{
             }
 
             info(msg.getChannel(), "Commands", builder.toString());
-        });
-
-        handler.<Message>register("ping", "<ip>", "Pings a server.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
-            net.pingServer(args[0], result -> {
-                if(result.name != null){
-                    info(msg.getChannel(), "Server Online", "Host: @\nPlayers: @\nMap: @\nWave: @\nVersion: @\nPing: @ms",
-                    Strings.stripColors(result.name), result.players, Strings.stripColors(result.mapname), result.wave, result.version, result.ping);
-                }else{
-                    errDelete(msg, "Server Offline", "Timed out.");
-                }
-            });
-        });
-
-        handler.<Message>register("info", "<topic>", "Displays information about a topic.", (args, msg) -> {
-            try{
-                Info info = Info.valueOf(args[0]);
-                infoDesc(msg.getChannel(), info.title, info.text);
-            }catch(IllegalArgumentException e){
-                errDelete(msg, "Error", "Invalid topic '@'.\nValid topics: *@*", args[0], Arrays.toString(Info.values()));
-            }
-        });
-
-
-        handler.<Message>register("postplugin", "<github-url>", "Post a plugin via Github repository URL.", (args, msg) -> {
-            if(!args[0].startsWith("https") || !args[0].contains("github")){
-                errDelete(msg, "That's not a valid Github URL.");
-            }else{
-                try{
-                    Document doc = Jsoup.connect(args[0]).get();
-
-                    EmbedBuilder builder = new EmbedBuilder().setColor(normalColor).
-                    setColor(normalColor)
-                    .setAuthor(msg.getAuthor().getName(), msg.getAuthor().getEffectiveAvatarUrl(), msg.getAuthor().getEffectiveAvatarUrl())
-                    .setTitle(doc.select("strong[itemprop=name]").text());
-
-                    Elements elem = doc.select("span[itemprop=about]");
-                    if(!elem.isEmpty()){
-                        builder.addField("About", elem.text(), false);
-                    }
-
-                    builder
-                    .addField("Link", args[0], false)
-                    .addField("Downloads", args[0] + (args[0].endsWith("/") ? "" : "/") + "releases", false);
-
-                    pluginChannel.sendMessageEmbeds(builder.build()).queue();
-
-                    text(msg, "*Plugin posted.*");
-                }catch(IOException e){
-                    errDelete(msg, "Failed to fetch plugin info from URL.");
-                }
-            }
         });
 
         handler.<Message>register("postmap", "Post a .msav file to the #maps channel.", (args, msg) -> {
@@ -285,273 +229,6 @@ public class Messages extends ListenerAdapter{
             }
         });
 
-        handler.<Message>register("google", "<phrase...>", "Let me google that for you.", (args, msg) -> {
-            text(msg, "http://lmgtfy.com/?q=@", Strings.encode(args[0]));
-        });
-
-        handler.<Message>register("cleanmod", "Clean up a modded zip archive. Changes json into hjson and formats code.", (args, msg) -> {
-
-            if(msg.getAttachments().size() != 1 || !msg.getAttachments().get(0).getFileName().endsWith(".zip")){
-                errDelete(msg, "You must have one .zip file in the same message as the command!");
-                return;
-            }
-
-            Attachment a = msg.getAttachments().get(0);
-
-            if(a.getSize() > 1024 * 1024 * 6){
-                errDelete(msg, "Zip files may be no more than 6 MB.");
-            }
-
-            try{
-                new File("cache/").mkdir();
-                File baseFile = new File("cache/" + a.getFileName());
-                Fi destFolder = new Fi("cache/dest_mod" + a.getFileName());
-                Fi destFile = new Fi("cache/" + new Fi(baseFile).nameWithoutExtension() + "-cleaned.zip");
-
-                if(destFolder.exists()) destFolder.deleteDirectory();
-                if(destFile.exists()) destFile.delete();
-
-                Streams.copy(net.download(a.getUrl()), new FileOutputStream(baseFile));
-                ZipFi zip = new ZipFi(new Fi(baseFile.getPath()));
-                zip.walk(file -> {
-                    Fi output = destFolder.child(file.extension().equals("json") ? file.pathWithoutExtension() + ".hjson" : file.path());
-                    output.parent().mkdirs();
-
-                    if(file.extension().equals("json") || file.extension().equals("hjson")){
-                        output.writeString(fixJval(Jval.read(file.readString())).toString(Jformat.hjson));
-                    }else{
-                        file.copyTo(output);
-                    }
-                });
-
-                try(OutputStream fos = destFile.write(false, 2048); ZipOutputStream zos = new ZipOutputStream(fos)){
-                    for(Fi add : destFolder.findAll(f -> true)){
-                        if(add.isDirectory()) continue;
-                        zos.putNextEntry(new ZipEntry(add.path().substring(destFolder.path().length())));
-                        Streams.copy(add.read(), zos);
-                        zos.closeEntry();
-                    }
-
-                }
-
-                msg.getChannel().sendFile(destFile.file()).queue();
-
-                text(msg, "*Mod converted successfully.*");
-            }catch(Throwable e){
-                errDelete(msg, "Error parsing mod.", Strings.neatError(e, false));
-            }
-        });
-
-        handler.<Message>register("file", "<filename...>", "Find a Mindustry source file by name", (args, msg) -> {
-            //epic asynchronous code, I know
-            Http.get("https://api.github.com/search/code?q=" +
-            "filename:" + Strings.encode(args[0]) + "%20" +
-            "repo:Anuken/Mindustry")
-            .header("Accept", "application/vnd.github.v3+json")
-            .error(err -> errDelete(msg, "Error querying Github", Strings.getSimpleMessage(err)))
-            .block(result -> {
-                msg.delete().queue();
-                Jval val = Jval.read(result.getResultAsString());
-
-                //merge with arc results
-                Http.get("https://api.github.com/search/code?q=" +
-                "filename:" + Strings.encode(args[0]) + "%20" +
-                "repo:Anuken/Arc")
-                .header("Accept", "application/vnd.github.v3+json")
-                .block(arcResult -> {
-                    Jval arcVal = Jval.read(arcResult.getResultAsString());
-
-                    val.get("items").asArray().addAll(arcVal.get("items").asArray());
-                    val.put("total_count", val.getInt("total_count", 0) + arcVal.getInt("total_count", 0));
-                });
-
-                int count = val.getInt("total_count", 0);
-
-                if(count > 0){
-                    val.get("items").asArray().removeAll(j -> !j.getString("name").contains(args[0]));
-                    count = val.get("items").asArray().size;
-                }
-
-                if(count == 0){
-                    errDelete(msg, "No results found.");
-                    return;
-                }
-
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.setColor(normalColor);
-                embed.setAuthor(msg.getAuthor().getName() + ": Github Search Results", val.get("items").asArray().first().getString("html_url"), "https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png");
-                embed.setTitle("Github Search Results");
-
-                if(count == 1){
-                    Jval item = val.get("items").asArray().first();
-                    embed.setTitle(item.getString("name"));
-                    embed.setDescription("[View on Github](" + item.getString("html_url") + ")");
-                }else{
-                    int maxResult = 5, i = 0;
-                    StringBuilder results = new StringBuilder();
-                    for(Jval item : val.get("items").asArray()){
-                        if(i++ > maxResult){
-                            break;
-                        }
-                        results.append("[").append(item.getString("name")).append("]").append("(").append(item.getString("html_url")).append(")\n");
-                    }
-
-                    embed.setTitle((count > maxResult ? maxResult + "+" : count) + " Source Results");
-                    embed.setDescription(results.toString());
-                }
-
-                msg.getChannel().sendMessageEmbeds(embed.build()).queue();
-            });
-        });
-
-
-        handler.<Message>register("mywarnings", "Get information about your own warnings. Only usable in #bots.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
-            sendWarnings(msg, msg.getAuthor());
-        });
-
-        handler.<Message>register("avatar", "[@user]", "Get a user's full avatar.", (args, msg) -> {
-            if(!msg.getChannel().getName().equalsIgnoreCase("bots")){
-                errDelete(msg, "Use this command in #bots.");
-                return;
-            }
-
-            try{
-                User user;
-                if(args.length > 0){
-                    long id;
-                    try{
-                        id = Long.parseLong(args[0]);
-                    }catch(NumberFormatException e){
-                        String author = args[0].substring(2, args[0].length() - 1);
-                        if(author.startsWith("!")) author = author.substring(1);
-                        id = Long.parseLong(author);
-                    }
-
-                    user = jda.retrieveUserById(id).complete();
-                }else{
-                    user = msg.getAuthor();
-                }
-
-                String link = user.getEffectiveAvatarUrl() + "?size=1024";
-
-                EmbedBuilder embed = new EmbedBuilder();
-                embed.setColor(normalColor);
-                embed.setTitle("Avatar: " + user.getName() + "#" + user.getDiscriminator());
-                embed.setImage(link);
-                embed.setDescription("[Link](" + link + ")");
-                embed.setFooter("Requested by " + msg.getAuthor().getName() + "#" + msg.getAuthor().getDiscriminator());
-                msg.getChannel().sendMessageEmbeds(embed.build()).queue();
-
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format or ID.");
-            }
-        });
-
-        adminHandler.<Message>register("userinfo", "<@user>", "Get user info.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-
-                if(user == null){
-                    errDelete(msg, "That user (ID @) is not in the cache. How did this happen?", l);
-                }else{
-                    Member member = guild.retrieveMember(user).complete();
-
-                    info(msg.getChannel(), "Info for " + member.getEffectiveName(),
-                        "Nickname: @\nUsername: @\nID: @\nStatus: @\nRoles: @\nIs Admin: @\nTime Joined: @",
-                        member.getNickname(),
-                        user.getName(),
-                        member.getIdLong(),
-                        member.getOnlineStatus(),
-                        member.getRoles().stream().map(Role::getName).collect(Collectors.toList()),
-                        isAdmin(user),
-                        member.getTimeJoined()
-                    );
-                }
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format or missing user.");
-            }
-        });
-
-        adminHandler.<Message>register("warnings", "<@user>", "Get number of warnings a user has.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                sendWarnings(msg, user);
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
-        adminHandler.<Message>register("delete", "<amount>", "Delete some ", (args, msg) -> {
-            try{
-                int number = Integer.parseInt(args[0]);
-                MessageHistory hist = msg.getChannel().getHistoryBefore(msg, number).complete();
-                msg.delete().queue();
-                msg.getTextChannel().deleteMessages(hist.getRetrievedHistory()).queue();
-            }catch(NumberFormatException e){
-                errDelete(msg, "Invalid number.");
-            }
-        });
-
-        adminHandler.<Message>register("warn", "<@user> [reason...]", "Warn a user.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                var list = getWarnings(user);
-                list.add(System.currentTimeMillis() + ":::" + msg.getAuthor().getName() + (args.length > 1 ? ":::" + args[1] : ""));
-                text(msg, "**@**, you've been warned *@*.", user.getAsMention(), warningStrings[Mathf.clamp(list.size - 1, 0, warningStrings.length - 1)]);
-                prefs.putArray("warning-list-" + user.getIdLong(), list);
-                if(list.size >= 3){
-                    moderationChannel.sendMessage("User " + user.getAsMention() + " has been warned 3 or more times!").queue();
-                }
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
-        adminHandler.<Message>register("clearwarnings", "<@user>", "Clear number of warnings for a person.", (args, msg) -> {
-            String author = args[0].substring(2, args[0].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                prefs.putArray("warning-list-" + user.getIdLong(), new Seq<>());
-                text(msg, "Cleared warnings for user '@'.", user.getName());
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
-
-        adminHandler.<Message>register("schemdesigner", "<add/remove> <@user>", "Make a user a verified schematic designer.", (args, msg) -> {
-            String author = args[1].substring(2, args[1].length() - 1);
-            if(author.startsWith("!")) author = author.substring(1);
-            try{
-                long l = Long.parseLong(author);
-                User user = jda.retrieveUserById(l).complete();
-                boolean add = args[0].equals("add");
-                if(add){
-                    guild.addRoleToMember(l, guild.getRoleById(877171645427621889L)).queue();
-                }else{
-                    guild.removeRoleFromMember(l, guild.getRoleById(877171645427621889L)).queue();
-                }
-
-                text(msg, "**@** is @ a verified schematic designer.", user.getName(), add ? "now" : "no longer");
-            }catch(Exception e){
-                errDelete(msg, "Incorrect name format.");
-            }
-        });
     }
 
     @Override
@@ -575,27 +252,13 @@ public class Messages extends ListenerAdapter{
             log.addField("Note", "thisisamention", false);
         }
 
-        if(msg.getChannel().getIdLong() != testingChannel.getIdLong()){
-            logChannel.sendMessageEmbeds(log.build()).queue();
-        }
+//        // alex removed if(msg.getChannel().getIdLong() != testingChannel.getIdLong()){
+//            logChannel.sendMessageEmbeds(log.build()).queue();
+//        }
 
         //delete stray invites
-        if(!isAdmin(msg.getAuthor()) && checkSpam(msg, false)){
-            return;
-        }
 
         //delete non-art
-        if(!isAdmin(msg.getAuthor()) && msg.getChannel().getIdLong() == artChannel.getIdLong() && msg.getAttachments().isEmpty()){
-            msg.delete().queue();
-
-            if(msg.getType() != MessageType.CHANNEL_PINNED_ADD){
-                try{
-                    msg.getAuthor().openPrivateChannel().complete().sendMessage("Don't send messages without images in that channel.").queue();
-                }catch(Exception e1){
-                    e1.printStackTrace();
-                }
-            }
-        }
 
         String text = msg.getContentRaw();
 
@@ -662,59 +325,6 @@ public class Messages extends ListenerAdapter{
                 handleResponse(msg, handler.handleMessage(text, msg), true);
             }
         }
-    }
-
-    @Override
-    public void onGuildMessageUpdate(GuildMessageUpdateEvent event){
-        var msg = event.getMessage();
-
-        if(isAdmin(msg.getAuthor()) || checkSpam(msg, true)){
-            return;
-        }
-
-        if((msg.getChannel().getIdLong() == artChannel.getIdLong()) && msg.getAttachments().isEmpty()){
-            msg.delete().queue();
-            try{
-                msg.getAuthor().openPrivateChannel().complete().sendMessage("Don't send messages without images in that channel.").queue();
-            }catch(Exception e){
-                e.printStackTrace();
-            }
-        }
-    }
-
-    @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event){
-        event.getUser().openPrivateChannel().complete().sendMessage(
-        """
-        **Welcome to the Mindustry Discord.**
-                
-        *Make sure you read #rules and the channel topics before posting.*
-                
-        **View a list of all frequently answered questions here:**
-        <https://discordapp.com/channels/391020510269669376/611204372592066570/611586644402765828>
-        """
-        ).queue();
-
-        joinChannel
-        .sendMessageEmbeds(new EmbedBuilder()
-            .setAuthor(event.getUser().getName(), event.getUser().getAvatarUrl(), event.getUser().getAvatarUrl())
-            .addField("User", event.getUser().getAsMention(), false)
-            .addField("ID", "`" + event.getUser().getId() + "`", false)
-            .setColor(normalColor).build())
-        .queue();
-    }
-
-    void sendWarnings(Message msg, User user){
-        var list = getWarnings(user);
-        text(msg, "User '@' has **@** @.\n@", user.getName(), list.size, list.size == 1 ? "warning" : "warnings",
-        list.map(s -> {
-            String[] split = s.split(":::");
-            long time = Long.parseLong(split[0]);
-            String warner = split.length > 1 ? split[1] : null, reason = split.length > 2 ? split[2] : null;
-            return "- `" + fmt.format(new Date(time)) + "`: Expires in " + (warnExpireDays - Duration.ofMillis((System.currentTimeMillis() - time)).toDays()) + " days" +
-            (warner == null ? "" : "\n  ↳ *From:* " + warner) +
-            (reason == null ? "" : "\n  ↳ *Reason:* " + reason);
-        }).toString("\n"));
     }
 
     public void text(MessageChannel channel, String text, Object... args){
@@ -790,106 +400,6 @@ public class Messages extends ListenerAdapter{
     boolean isAdmin(User user){
         var member = guild.retrieveMember(user).complete();
         return member != null && member.getRoles().stream().anyMatch(role -> role.getName().equals("Developer") || role.getName().equals("Moderator") || role.getName().equals("\uD83D\uDD28 \uD83D\uDD75️\u200D♂️"));
-    }
-
-    boolean checkSpam(Message message, boolean edit){
-
-        if(message.getChannel().getType() != ChannelType.PRIVATE){
-            Seq<String> mentioned =
-                //ignore reply messages, bots don't use those
-                message.getReferencedMessage() != null ? new Seq<>() :
-                //get all mentioned members and roles in one list
-                Seq.with(message.getMentionedMembers()).map(IMentionable::getAsMention).and(Seq.with(message.getMentionedRoles()).map(IMentionable::getAsMention));
-
-            var data = data(message.getAuthor());
-            String content = message.getContentRaw().toLowerCase(Locale.ROOT);
-
-            //go through every ping individually
-            for(var ping : mentioned){
-                if(!ping.equals(data.lastPingId)){
-                    data.lastPingId = ping;
-                    data.uniquePings++;
-                    if(data.uniquePings >= pingSpamLimit){
-                        Log.info("Autobanning @ for spamming @ pings in a row.", message.getAuthor().getName() + "#" + message.getAuthor().getId(), data.uniquePings);
-                        alertsChannel.sendMessage(message.getAuthor().getAsMention() + " **has been auto-banned for pinging " + pingSpamLimit + " unique members in a row!**").queue();
-                        message.getGuild().ban(message.getAuthor(), 1, "Banned for spamming member pings. If you believe this was in error, file an issue on the CoreBot Github (https://github.com/Anuken/CoreBot/issues) or contact a moderator.").queue();
-                    }
-                }
-            }
-
-            if(mentioned.isEmpty()){
-                data.uniquePings = 0;
-            }
-
-            //check for consecutive links
-            if(!edit && linkPattern.matcher(content).find()){
-
-                if(content.equals(data.lastLinkMessage) && !message.getChannel().getId().equals(data.lastLinkChannelId)){
-                    Log.warn("User @ just spammed a link in @ (message: @): '@'", message.getAuthor().getName(), message.getChannel().getName(), message.getId(), content);
-
-                    //only start deleting after 2 posts
-                    if(data.linkCrossposts >= 1){
-                        alertsChannel.sendMessage(
-                            message.getAuthor().getAsMention() +
-                            " **is spamming a link** in " + message.getTextChannel().getAsMention() +
-                            ":\n\n" + message.getContentRaw()
-                        ).queue();
-
-                        message.delete().queue();
-                        message.getAuthor().openPrivateChannel().complete().sendMessage("You have posted a link several times. Do not send any similar messages, or **you will be auto-banned.**").queue();
-                    }
-
-                    //4 posts = ban
-                    if(data.linkCrossposts ++ >= 3){
-                        Log.warn("User @ (@) has been auto-banned after spamming link messages.", message.getAuthor().getName(), message.getAuthor().getAsMention());
-
-                        alertsChannel.sendMessage(message.getAuthor().getAsMention() + " **has been auto-banned for spam-posting links!**").queue();
-                        message.getGuild().ban(message.getAuthor(), 1, "[Auto-Ban] Spam-posting links. If you are not a bot or spammer, please report this at https://github.com/Anuken/CoreBot/issues immediately!").queue();
-                    }
-                }
-
-                data.lastLinkMessage = content;
-                data.lastLinkChannelId = message.getChannel().getId();
-            }else{
-                data.linkCrossposts = 0;
-                data.lastLinkMessage = null;
-                data.lastLinkChannelId = null;
-            }
-
-            if(invitePattern.matcher(content).find()){
-                Log.warn("User @ just sent a discord invite in @.", message.getAuthor().getName(), message.getChannel().getName());
-                message.delete().queue();
-                message.getAuthor().openPrivateChannel().complete().sendMessage("Do not send invite links in the Mindustry Discord server! Read the rules.").queue();
-                return true;
-            }else if(containsScamLink(message)){
-                Log.warn("User @ just sent a potential scam message in @: '@'", message.getAuthor().getName(), message.getChannel().getName(), message.getContentRaw());
-
-                int count = data.scamMessages ++;
-
-                alertsChannel.sendMessage(
-                    message.getAuthor().getAsMention() +
-                    " **has sent a potential scam message** in " + message.getTextChannel().getAsMention() +
-                    ":\n\n" + message.getContentRaw()
-                ).queue();
-
-                message.delete().queue();
-                message.getAuthor().openPrivateChannel().complete().sendMessage("Your message has been flagged as a potential scam. Do not send any similar messages, or **you will be auto-banned.**").queue();
-
-                if(count >= scamAutobanLimit - 1){
-                    Log.warn("User @ (@) has been auto-banned after @ scam messages.", message.getAuthor().getName(), message.getAuthor().getAsMention(), count + 1);
-
-                    alertsChannel.sendMessage(message.getAuthor().getAsMention() + " **has been auto-banned for posting " + scamAutobanLimit + " scam messages in a row!**").queue();
-                    message.getGuild().ban(message.getAuthor(), 0, "[Auto-Ban] Posting several potential scam messages in a row. If you are not a bot or spammer, please report this at https://github.com/Anuken/CoreBot/issues immediately!").queue();
-                }
-
-                return true;
-            }else{
-                //non-consecutive scam messages don't count
-                data.scamMessages = 0;
-            }
-
-        }
-        return false;
     }
 
     boolean handleResponse(Message msg, CommandResponse response, boolean logUnknown){
