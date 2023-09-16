@@ -15,7 +15,7 @@ rm CoreBot.jar
 #cp -f ../Mindustry/core/assets/sprites/block_colors.png assets/block_colors.png
 #cp -f ../Mindustry/core/assets/sprites/sprites.aatls assets/sprites.aatls
 #cp -f ../Mindustry/core/assets-raw/sprites-out/* assets/sprites-out/
-cp -f build/libs/CoreBot.jar CoreBot.jar
+cp -f build/libs/CoreBot-1.0.jar CoreBot.jar
 
 echo "done Copying files for uncompiled execution"
 

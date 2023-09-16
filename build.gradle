@@ -32,7 +32,7 @@ task dist(type: Jar){
     archiveFileName = "CoreBot.jar"
 
     manifest{
-        attributes 'Main-Class': project.mainClassName
+        attributes 'Main-Class': "corebot.CoreBot"
     }
 
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
