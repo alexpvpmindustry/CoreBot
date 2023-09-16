@@ -153,24 +153,24 @@ public class Messages extends ListenerAdapter{
     void loadChannels(){
 
         //all guilds and channels are loaded here for faster lookup
-        guild = jda.getGuildById(391020510269669376L);
+        guild = jda.getGuildById(785543836608364556L);
         // alex removed pluginChannel = channel(617833229973717032L);
         // alex removed crashReportChannel = channel(467033526018113546L);
         // alex removed announcementsChannel = channel(391020997098340352L);
         // alex removed artChannel = channel(754011833928515664L);
-        mapsChannel = channel(416719902641225732L);
+        mapsChannel = channel(785836054070427659L);
         // alex removed moderationChannel = channel(488049830275579906L);
-        schematicsChannel = channel(640604827344306207L);
-        baseSchematicsChannel = channel(718536034127839252L);
+        schematicsChannel = channel(785836216649383947L);
+        // alex removed  baseSchematicsChannel = channel(718536034127839252L);
         // alex removed logChannel = channel(568416809964011531L);
         // alex removed joinChannel = channel(832688792338038844L);
         // alex removed streamsChannel = channel(833420066238103604L);
         // alex removed videosChannel = channel(833826797048692747L);
         // alex removed testingChannel = channel(432984286099144706L);
         // alex removed alertsChannel = channel(864139464401223730L);
-        curatedSchematicsChannel = channel(878022862915653723L);
+        // alex removed curatedSchematicsChannel = channel(878022862915653723L);
 
-        schematicChannels.add(schematicsChannel.getIdLong(), baseSchematicsChannel.getIdLong(), curatedSchematicsChannel.getIdLong());
+        schematicChannels.add(schematicsChannel.getIdLong() );
     }
 
     void printCommands(CommandHandler handler, StringBuilder builder){
@@ -260,9 +260,10 @@ public class Messages extends ListenerAdapter{
                 log.addField("Replying to", msg.getReferencedMessage().getAuthor().getAsMention() + " [Jump](" + msg.getReferencedMessage().getJumpUrl() + ")", false);
             }
 
-            if(msg.getMentionedUsers().stream().anyMatch(u -> u.getIdLong() == 123539225919488000L)){
-                log.addField("Note", "thisisamention", false);
-            }
+        if(msg.getMentionedUsers().stream().anyMatch(u -> u.getIdLong() == 123539225919488000L)){
+            // what/who is this??
+            log.addField("Note", "thisisamention", false);
+        }
 
 //        // alex removed if(msg.getChannel().getIdLong() != testingChannel.getIdLong()){
 //            logChannel.sendMessageEmbeds(log.build()).queue();
@@ -430,6 +431,7 @@ public class Messages extends ListenerAdapter{
             }else{
                 errDelete(msg, "Invalid arguments.", "Usage: @@ *@*", prefix, response.command.text, response.command.paramText);
             }
+            return false;
         }
         return true;
     }
