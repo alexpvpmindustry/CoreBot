@@ -70,7 +70,6 @@ public class Messages extends ListenerAdapter{
         "cs.?go.*skins",
         "skins.*cs.?go",
         "stea.*com.*partner",
-        "скин.*partner",
         "steamcommutiny",
         "di.*\\.gift.*nitro",
         "http.*disc.*gift.*\\.",
@@ -85,8 +84,6 @@ public class Messages extends ListenerAdapter{
         "http.*gift.*nitro",
         "http.*nitro.*gift",
         "http.*n.*gift",
-        "бесплат.*нитро.*http",
-        "нитро.*бесплат.*http",
         "nitro.*http.*disc.*nitro",
         "http.*click.*nitro",
         "http.*st.*nitro",
@@ -400,7 +397,7 @@ public class Messages extends ListenerAdapter{
 
     boolean isAdmin(User user){
         var member = guild.retrieveMember(user).complete();
-        return member != null && member.getRoles().stream().anyMatch(role -> role.getName().equals("Developer") || role.getName().equals("Moderator") || role.getName().equals("\uD83D\uDD28 \uD83D\uDD75️\u200D♂️"));
+        return member != null && member.getRoles().stream().anyMatch(role -> role.getName().equals("Admin (Discord)") || role.getName().equals("Admin (Mindustry)")  );
     }
 
     boolean handleResponse(Message msg, CommandResponse response, boolean logUnknown){
